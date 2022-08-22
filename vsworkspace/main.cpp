@@ -286,7 +286,7 @@ bool Cut_Block(Mat src, vector<Card>&Block_ROI)
 int main ()
 {
     Mat img = imread("Model/ocr_a_reference.png");//数字模板
-	Mat src = imread("Card/credit_card_05.png");//目标模板
+	Mat src = imread("Card/credit_card_01.png");//目标模板
 
     vector<Card> Block_ROI;//区块模板
 	vector<Mat> Card_Temp;
@@ -303,38 +303,72 @@ int main ()
 	}
 	else
 	{
-        Cut_Block(src, Block_ROI);//位置定位
         Rect rect;
-        rect.x=Block_ROI[0].rect.x;
-        rect.y=Block_ROI[0].rect.y;
-        rect.width = Block_ROI[3].rect.x-Block_ROI[0].rect.x+Block_ROI[3].rect.width;
-        rect.height =Block_ROI[0].rect.height;
-        
-		if(!Cutnum_Save_num(src(rect),Num_Temp))
+		if(Cut_Block(src, Block_ROI))
 		{
-			cout<<"cut num faild"<<endl;
+			rect.x=Block_ROI[0].rect.x;
+			rect.y=Block_ROI[0].rect.y;
+			rect.width = Block_ROI[3].rect.x-Block_ROI[0].rect.x+Block_ROI[3].rect.width;
+			rect.height =Block_ROI[0].rect.height;
+			if(!Cutnum_Save_num(src(rect),Num_Temp))
+			{
+				cout<<"cut num faild"<<endl;
+			    system("pause");
+			    return -1;
+			}
+			else
+			{
+				check(Card_Temp,Num_Temp,Num);
+				string text1,text2,text3,text4;
+                for(int i=0;i<Num.size();i++)
+				{
+					if(i>=0&&i<=3)
+					{
+						char temp;
+						temp = Num[i]+'0';
+						text1.push_back(temp);
+					}
+					else if(i>=4&&i<=7)
+					{
+						char temp;
+						temp = Num[i]+'0';
+						text2.push_back(temp);
+					}
+					else if(i>=8&&i<=11)
+					{
+						char temp;
+						temp = Num[i]+'0';
+						text3.push_back(temp);
+					}
+					else
+					{
+						char temp;
+						temp = Num[i]+'0';
+						text4.push_back(temp);
+					}
+				}
+				//cout<<text1<<" "<<text2<<" "<<text3<<" "<<text4<<endl;
+				for(int i=0;i<Block_ROI.size();i++)
+				{
+					rectangle(src, Block_ROI[i].rect, Scalar(0, 255, 0), 2);
+                }
+				putText(src,text1, Block_ROI[0].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text2, Block_ROI[1].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text3, Block_ROI[2].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text4, Block_ROI[3].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				imshow("src",src);
+				waitKey(0);
+				system("pause");
+				return -1;
+			}
+		}
+        else
+		{
+			cout<<"cut block faild"<<endl;
 			system("pause");
 			return -1;
 		}
-		else
-		{
-			check(Card_Temp,Num_Temp,Num);
-            string text;
-            for(int i=0;i<Num.size();i++)
-            {
-                char temp;
-                temp = Num[i]+'0';
-                text.push_back(temp);
-            }
-            cout<<text<<endl;
-            for(int i=0;i<Block_ROI.size();i++)
-            {
-                rectangle(src, Block_ROI[i].rect, Scalar(0, 255, 0), 2);
-                //putText(src,text , rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
-            }
-            imshow("src",src);
-            waitKey(0);
-			system("pause");
-		}
+        
+		
 	}
 }
