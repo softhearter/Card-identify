@@ -6,12 +6,6 @@
 using namespace cv;
 using namespace std;
 
-struct Card
-{
-	cv::Mat mat;
-	cv::Rect rect;
-};
-
 ///////////////////////////////////////
 //计算列上的像素值和
 int getColSum(Mat &src,int cols)
@@ -200,7 +194,7 @@ void check(vector<Mat>Card_Temp,vector<Mat>Num_Temp,vector<int>&num)
 
 /////////////////////////////////////////////////////////
 
-bool Cut_Block(Mat src, vector<Card>&Block_ROI)
+bool Cut_Block(Mat src, vector<Rect>&Block_ROI)
 {
 	Rect m_select = Rect(0,src.rows*0.5,src.cols,src.rows*0.175);//裁出大概位置
 	Mat ROI = src(m_select);
@@ -252,10 +246,8 @@ bool Cut_Block(Mat src, vector<Card>&Block_ROI)
 
 			if (ratio > 2.4 && ratio < 3.1)
 			{
-				//rectangle(Roi, rect, Scalar(0, 255, 0), 2);
-				Mat roi = ROI(rect);
 				rect.y = rect.y+src.rows*1.46;
-				Block_ROI.push_back({ roi ,rect });
+				Block_ROI.push_back(rect);
 			}
 		}
 	}
@@ -270,9 +262,9 @@ bool Cut_Block(Mat src, vector<Card>&Block_ROI)
 	{
 		for (int j = 0; j < Block_ROI.size() - 1 - i; j++)
 		{
-			if (Block_ROI[j].rect.x > Block_ROI[j + 1].rect.x)
+			if (Block_ROI[j].x > Block_ROI[j + 1].x)
 			{
-				Card temp = Block_ROI[j];
+				Rect temp = Block_ROI[j];
 				Block_ROI[j] = Block_ROI[j + 1];
 				Block_ROI[j + 1] = temp;
 			}
@@ -286,9 +278,9 @@ bool Cut_Block(Mat src, vector<Card>&Block_ROI)
 int main ()
 {
     Mat img = imread("Model/ocr_a_reference.png");//数字模板
-	Mat src = imread("Card/credit_card_01.png");//目标模板
+	Mat src = imread("Card/credit_card_02.png");//目标模板
 
-    vector<Card> Block_ROI;//区块模板
+    vector<Rect> Block_ROI;//区块模板
 	vector<Mat> Card_Temp;
 	vector<Mat> Num_Temp;
     vector<int> Num;
@@ -306,10 +298,13 @@ int main ()
         Rect rect;
 		if(Cut_Block(src, Block_ROI))
 		{
-			rect.x=Block_ROI[0].rect.x;
-			rect.y=Block_ROI[0].rect.y;
-			rect.width = Block_ROI[3].rect.x-Block_ROI[0].rect.x+Block_ROI[3].rect.width;
-			rect.height =Block_ROI[0].rect.height;
+			rect.x=Block_ROI[0].x;
+			rect.y=Block_ROI[0].y;
+			rect.width = Block_ROI[3].x-Block_ROI[0].x+Block_ROI[3].width;
+			rect.height =Block_ROI[0].height;
+            rectangle(src, rect, Scalar(0, 255, 0), 1);
+            //imshow("src",src);
+            //waitKey(0);
 			if(!Cutnum_Save_num(src(rect),Num_Temp))
 			{
 				cout<<"cut num faild"<<endl;
@@ -350,12 +345,12 @@ int main ()
 				//cout<<text1<<" "<<text2<<" "<<text3<<" "<<text4<<endl;
 				for(int i=0;i<Block_ROI.size();i++)
 				{
-					rectangle(src, Block_ROI[i].rect, Scalar(0, 255, 0), 2);
+					rectangle(src, Block_ROI[i], Scalar(0, 255, 0), 2);
                 }
-				putText(src,text1, Block_ROI[0].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
-				putText(src,text2, Block_ROI[1].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
-				putText(src,text3, Block_ROI[2].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
-				putText(src,text4, Block_ROI[3].rect.tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text1, Block_ROI[0].tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text2, Block_ROI[1].tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text3, Block_ROI[2].tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+				putText(src,text4, Block_ROI[3].tl (),FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
 				imshow("src",src);
 				waitKey(0);
 				system("pause");
@@ -367,8 +362,7 @@ int main ()
 			cout<<"cut block faild"<<endl;
 			system("pause");
 			return -1;
-		}
-        
+		} 
 		
 	}
 }
